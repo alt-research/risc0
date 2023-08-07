@@ -5,9 +5,18 @@ edition = "2021"
 
 [dependencies]
 risc0-zkvm = { path = "../../risc0/zkvm" }
-serde = "1.0"
-wasm-methods = { path = "methods" }
-wat = "1.0"
+#wasm-methods = { path = "methods" }
+
+methods = { path = "./methods" }
+#risc0-zkvm = { git = "https://github.com/risc0/risc0", rev = "c2df930c3cb4d70281e859fe744b7a37a46550fa" }
+serde = { version = "1.0.180", features = ["derive"] }
+serde_json = "1.0.104"
+impl-serde = { version = "0.4.0" }
+wasmi = { git = "https://github.com/alt-research/accel-wasmi", branch = "master" }
+#wasmi = { path = "../../wasmi" }
+codec = { package = "parity-scale-codec", version = "3.0", features = ["derive"] }
+wat = "1"
+
 
 [features]
 cuda = ["risc0-zkvm/cuda"]

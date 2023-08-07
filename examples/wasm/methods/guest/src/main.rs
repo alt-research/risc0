@@ -15,33 +15,31 @@
 #![no_main]
 #![allow(unused_imports)]
 
+use codec::{Decode};
+use wasmi::proof::{CodeProof, OspProof};
+use risc0_zkvm::guest::env;
+use wasmi::merkle::{DefaultMemoryConfig, MerkleKeccak256};
+
 risc0_zkvm::guest::entry!(main);
 
-use risc0_zkvm::guest::env;
-use wasmi::{Caller, Engine, Func, Linker, Module, Store};
+pub type EthConfig = DefaultMemoryConfig<MerkleKeccak256>;
 
 pub fn main() {
-    let engine = Engine::default();
+    let osp_proof_bytes: Vec<u8> = env::read();
+    let code_proof_bytes: Vec<u8> = env::read();
+    let post_proof_hash: Vec<u8> = env::read();
 
-    let wasm: Vec<u8> = env::read();
-    let iters: i32 = env::read();
+    let mut osp_proof: OspProof<EthConfig> = Decode::decode(&mut &*osp_proof_bytes).expect("osp proof");
+    let code_proof: CodeProof<MerkleKeccak256> = Decode::decode(&mut &*code_proof_bytes).expect("code proof");
 
-    // Derived from the wasmi example: https://docs.rs/wasmi/0.29.0/wasmi/#example
-    let module = Module::new(&engine, &mut &wasm[..]).expect("Failed to create module");
-    type HostState = u32;
+    osp_proof.run(&code_proof).expect("osp proof run");
 
-    let linker = <Linker<HostState>>::new(&engine);
-    let mut store = Store::new(&engine, 42);
-    let instance = linker
-        .instantiate(&mut store, &module)
-        .expect("failed to instantiate")
-        .start(&mut store)
-        .expect("Failed to start");
+    let proof_hash = osp_proof.hash().to_vec();
 
-    let fib = instance
-        .get_typed_func::<i32, i32>(&store, "fib")
-        .expect("Failed to get typed_func");
-    let res = fib.call(&mut store, iters).expect("Failed to call");
-    env::log(&format!("fib {} - {}", iters, res));
-    env::commit(&res);
+    // should be eq
+    assert_eq!(proof_hash, post_proof_hash);
+
+    // test ne
+    // assert_ne!(proof_hash, post_proof_hash);
 }
+

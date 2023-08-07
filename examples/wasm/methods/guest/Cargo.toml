@@ -1,5 +1,5 @@
 [package]
-name = "wasm-interp"
+name = "method_name"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 risc0-zkvm = { path = "../../../../risc0/zkvm", default-features = false, features = ["std"] }
-wasmi = "0.29"
+wasmi = { git = "https://github.com/alt-research/accel-wasmi", branch = "master", default-features = false }
+codec = { package = "parity-scale-codec", version = "3.0", default-features = false, features = ["derive"] }
